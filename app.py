@@ -7,13 +7,10 @@ import io
 st.set_page_config(page_title="MRI Brain Tumor Classifier", layout="centered")
 st.title("🧠 MRI Brain Tumor Classifier - EfficientNetB0")
 
-# Load model
 @st.cache_resource
 def load_model():
     model = models.efficientnet_b0(pretrained=False)
-    num_ftrs = model.classifier[1].in_features
-    model.classifier[1] = torch.nn.Linear(num_ftrs, 2)  # 2 output classes: Tumor / No Tumor
-
+    model.classifier[1] = torch.nn.Linear(model.classifier[1].in_features, 2)
     model.load_state_dict(torch.load("efficient_b0_best_model.pt", map_location="cpu"))
     model.eval()
     return model
