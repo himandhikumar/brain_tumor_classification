@@ -8,14 +8,22 @@ st.title("🧠 MRI Brain Tumor Classifier - EfficientNetB0")
 
 @st.cache_resource
 def load_model():
-    # Load the architecture
-    model = models.efficientnet_b0(weights=None)  # don't load pretrained weights here
-    model.classifier[1] = torch.nn.Linear(model.classifier[1].in_features, 2)  # Adjust for binary classification
-    model.load_state_dict(torch.load("efficient_b0_best_model.pt", map_location="cpu"))
+    from torchvision import models
+    import torch.nn as nn
+
+    # Load base EfficientNetB0 model
+    model = models.efficientnet_b0(weights=None)
+
+    # Modify classifier layer to match your binary classification task
+    model.classifier[1] = nn.Linear(model.classifier[1].in_features, 2)
+
+    # Load trained weights
+    state_dict = torch.load("efficient_b0_best_model.pt", map_location="cpu")
+    model.load_state_dict(state_dict)
     model.eval()
+
     return model
 
-model = load_model()
 
 # Image uploader
 image_file = st.file_uploader("Upload an MRI image", type=["jpg", "jpeg", "png"])
