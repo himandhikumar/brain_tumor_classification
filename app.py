@@ -2,6 +2,7 @@
 import streamlit as st
 import torch
 import torchvision.transforms as transforms
+from torchvision import models
 from PIL import Image
 
 st.title("🧠 MRI Brain Tumor Classifier - EfficientNetB0")
