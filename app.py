@@ -1,51 +1,43 @@
 import streamlit as st
 import torch
-from torchvision import models, transforms
+import torchvision.transforms as transforms
 from PIL import Image
+import os
 
-st.set_page_config(page_title="MRI Brain Tumor Classifier", layout="centered")
-st.title("🧠 MRI Brain Tumor Classifier - EfficientNetB0")
+# Center title
+st.markdown("<h1 style='text-align: center;'>🧠 MRI Brain Tumor Classifier</h1>", unsafe_allow_html=True)
 
+# Load model
 @st.cache_resource
 def load_model():
-    from torchvision import models
-    import torch.nn as nn
-
-    # Load base EfficientNetB0 model
-    model = models.efficientnet_b0(weights=None)
-
-    # Modify classifier layer to match your binary classification task
-    model.classifier[1] = nn.Linear(model.classifier[1].in_features, 2)
-
-    # Load trained weights
-    state_dict = torch.load("efficient_b0_best_model.pt", map_location="cpu")
-    model.load_state_dict(state_dict)
+    model = torch.load("efficient_b0_best_model.pt", map_location=torch.device("cpu"))
     model.eval()
-
     return model
 
+model = load_model()
 
 # Image uploader
-image_file = st.file_uploader("Upload an MRI image", type=["jpg", "jpeg", "png"])
+image_file = st.file_uploader("Upload an MRI Image (jpg, jpeg, png)", type=["jpg", "jpeg", "png"])
 
-if image_file:
+# Prediction logic
+if image_file is not None:
     img = Image.open(image_file).convert("RGB")
-    
-    # Show image centered and smaller
-    st.image(img, caption="Input MRI Image", use_column_width=False, width=300)
 
-    # Transform image
+    # Show smaller centered image
+    st.markdown("<h4 style='text-align: center;'>Uploaded MRI Image</h4>", unsafe_allow_html=True)
+    st.image(img, width=250)
+
+    # Preprocess image
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
-        transforms.ToTensor(),
+        transforms.ToTensor()
     ])
-    device = torch.device("cpu")  # or "cuda" if running locally on GPU
-    input_tensor = input_tensor.to(device)
-    model.to(device)
+    input_tensor = transform(img).unsqueeze(0).to(torch.device("cpu"))
 
+    # Predict
     with torch.no_grad():
         output = model(input_tensor)
         pred = torch.argmax(output, 1).item()
-        label = "Tumor" if prediction else "No Tumor"
 
-    st.success(f"Prediction: **{label}**")
+    result = "🟢 Tumor Detected" if pred == 1 else "🟡 No Tumor Detected"
+    st.markdown(f"<h3 style='text-align: center; color: green;'>{result}</h3>", unsafe_allow_html=True)
