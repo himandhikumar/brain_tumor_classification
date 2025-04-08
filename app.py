@@ -39,11 +39,13 @@ if image_file:
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
     ])
-    input_tensor = transform(img).unsqueeze(0)
+    device = torch.device("cpu")  # or "cuda" if running locally on GPU
+    input_tensor = input_tensor.to(device)
+    model.to(device)
 
     with torch.no_grad():
         output = model(input_tensor)
-        prediction = torch.argmax(output, dim=1).item()
+        pred = torch.argmax(output, 1).item()
         label = "Tumor" if prediction else "No Tumor"
 
     st.success(f"Prediction: **{label}**")
