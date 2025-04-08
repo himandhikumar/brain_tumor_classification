@@ -4,6 +4,7 @@ from torch import nn
 from torchvision import models, transforms
 from PIL import Image
 import io
+import torch.nn.functional as F
 
 st.set_page_config(page_title="MRI Brain Tumor Classifier", layout="centered")
 st.title("🧠 MRI Brain Tumor Classifier - EfficientNetB0")
@@ -26,7 +27,7 @@ def load_model():
 model = load_model()
 
 image_file = st.file_uploader("Upload an MRI image", type=["jpg", "jpeg", "png"])
-
+class_names = ["No Tumor", "Tumor"]
 if image_file and model:
     img = Image.open(image_file).convert('RGB')
     
@@ -48,11 +49,21 @@ if image_file and model:
 
     with torch.no_grad():
         output = model(input_tensor)
-        pred = torch.argmax(output, 1).item()
+        probs = F.softmax(output, dim=1)
+        confidence, predicted_class = torch.max(probs, 1)
 
-    result = "🧠 **Tumor Detected**" if pred == 1 else "✅ **No Tumor Detected**"
+        predicted_label = class_names[predicted_class.item()]
+        confidence_percent = confidence.item() * 100
 
-    st.markdown("---")
-    st.markdown(f"<div style='text-align:center; font-size: 24px; color: #4CAF50;'>{result}</div>", unsafe_allow_html=True)
-elif image_file and not model:
-    st.warning("Please upload the model file first.")
+     st.markdown("---")
+    st.markdown(f"### 🧠 **Predicted Class:** `{predicted_label}`")
+    st.metric(label="Prediction Confidence", value=f"{confidence_percent:.2f}%")
+
+    # Custom progress bar label
+    st.markdown("#### Confidence Visual")
+    st.progress(confidence.item())
+
+    if confidence_percent < 70:
+        st.warning("⚠️ Model confidence is relatively low. Consider using a higher-resolution image or verifying with medical experts.")
+else:
+    st.info("📂 Please upload a valid MRI scan (JPEG/PNG).")
