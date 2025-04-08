@@ -37,7 +37,7 @@ if image_file and model:
     # Center the image
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.image(display_img, caption="Input MRI", use_continer_width=True)
+        st.image(display_img, caption="Input MRI", use_container_width=True)
 
     # Preprocess
     transform = transforms.Compose([
