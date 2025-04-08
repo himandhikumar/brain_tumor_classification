@@ -7,14 +7,17 @@ import os
 # Center title
 st.markdown("<h1 style='text-align: center;'>🧠 MRI Brain Tumor Classifier</h1>", unsafe_allow_html=True)
 
-# Load model
+from torchvision.models import efficientnet_b0
+
 @st.cache_resource
 def load_model():
-    model = torch.load("efficient_b0_best_model.pt", map_location=torch.device("cpu"))
+    model = efficientnet_b0(pretrained=False)
+    num_ftrs = model.classifier[1].in_features
+    model.classifier[1] = torch.nn.Linear(num_ftrs, 2)  # Assuming 2 classes
+    model.load_state_dict(torch.load("efficient_b0_best_model.pt", map_location="cpu"))
     model.eval()
     return model
 
-model = load_model()
 
 # Image uploader
 image_file = st.file_uploader("Upload an MRI Image (jpg, jpeg, png)", type=["jpg", "jpeg", "png"])
