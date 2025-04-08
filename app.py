@@ -25,27 +25,34 @@ def load_model():
 
 model = load_model()
 
-# Upload image
-image_file = st.file_uploader("📤 Upload an MRI image", type=["jpg", "jpeg", "png"])
+image_file = st.file_uploader("Upload an MRI image", type=["jpg", "jpeg", "png"])
 
-if image_file:
+if image_file and model:
     img = Image.open(image_file).convert('RGB')
+    
+    # Resize image for display
+    display_img = img.copy()
+    display_img.thumbnail((300, 300))  # Resize preview image
 
-    # Center the image and make it smaller
-    st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
-    st.image(img, caption="🖼️ Uploaded MRI Image", width=300)
-    st.markdown("</div>", unsafe_allow_html=True)
+    # Center the image
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image(display_img, caption="Input MRI", use_column_width=True)
 
-    # Image preprocessing
+    # Preprocess
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor()
     ])
     input_tensor = transform(img).unsqueeze(0)
 
-    # Predict
     with torch.no_grad():
         output = model(input_tensor)
         pred = torch.argmax(output, 1).item()
 
-    st.success(f"✅ Prediction: **{'Tumor' if pred == 1 else 'No Tumor'}**")
+    result = "🧠 **Tumor Detected**" if pred == 1 else "✅ **No Tumor Detected**"
+
+    st.markdown("---")
+    st.markdown(f"<div style='text-align:center; font-size: 24px; color: #4CAF50;'>{result}</div>", unsafe_allow_html=True)
+elif image_file and not model:
+    st.warning("Please upload the model file first.")
