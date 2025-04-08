@@ -8,7 +8,10 @@ st.title("🧠 MRI Brain Tumor Classifier - EfficientNetB0")
 
 @st.cache_resource
 def load_model():
-    model = torch.load("efficient_b0_best_model.pt", map_location=torch.device("cpu"))
+    model = models.efficientnet_b0(pretrained=False)
+    num_ftrs = model.classifier[1].in_features
+    model.classifier[1] = torch.nn.Linear(num_ftrs, 2)  # Assuming binary classification
+    model.load_state_dict(torch.load("efficient_b0_best_model.pt", map_location='cpu'))
     model.eval()
     return model
 
