@@ -55,7 +55,7 @@ if image_file and model:
         predicted_label = class_names[predicted_class.item()]
         confidence_percent = confidence.item() * 100
 
-     st.markdown("---")
+    st.markdown("---")
     st.markdown(f"### 🧠 **Predicted Class:** `{predicted_label}`")
     st.metric(label="Prediction Confidence", value=f"{confidence_percent:.2f}%")
 
